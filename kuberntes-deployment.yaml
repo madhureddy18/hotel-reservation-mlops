@@ -1,0 +1,35 @@
+apiVersion: app/v1
+kind: Deployment
+metadata:
+  name: hotel-reservation-prediction
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+    app: hotel-reservation-prediction
+    template:
+      metadata:
+        labels:
+          app: hotel-reservation-prediction
+      spec:
+        containers:
+        - name: hotel-reservation-prediction
+          image: us-central1-docker.pkg.dev/prime-agency-474008-p8/hotel-resevations/hotel-reservation-prediction:latest
+          ports:
+          - containerPort: 5000
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hotel-reservation-prediction
+spec:
+  selector:
+    app: hotel-reservation-prediction
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 5000
+  type: LoadBalancer
+
+

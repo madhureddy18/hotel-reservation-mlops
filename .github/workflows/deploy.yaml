@@ -1,0 +1,62 @@
+name: CI/CD Deployment to GKE
+
+on:
+    push:
+        branches:
+            - main
+
+env:
+    PROJECT_ID: ${{ secrets.GCP_ACC_ID }}
+    GKE_CLUSTER: "autopilot-cluster-1"
+    GKE_REGION: "us-central1"
+    DEPLOYMENT_NAME: "hotel-reservation-prediction"
+    REPOSITORY: "us-central1-docker.pkg.dev/prime-agency-474008-p8/hotel-resevations"
+    IMAGE: "us-central1-docker.pkg.dev/prime-agency-474008-p8/hotel-resevations/hotel-reservation-prediction"
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest 
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+        
+      - name: Authenticate with Google cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SERVICEACCOUNT_KEY }}
+
+      - name: Configure GCloud
+        run: |
+          gcloud config set project $PROJECT_ID
+          gcloud auth configure-docker us-central1-docker.pkg.dev
+          
+      - name: Building and Pushing Image
+        run: |
+          docker build -t $IMAGE:$GITHUB_SHA .
+          docker push $IMAGE:$GITHUB_SHA
+    
+    #   - name: Install gke-gcloud-auth-plugin
+    #     run: |
+    #       # Add the Google Cloud CLI repository to the apt-get sources list
+    #       echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+          
+    #       # Add the Google Cloud public key
+    #       curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg
+          
+    #       # Update the package list
+    #       sudo apt-get update
+          
+    #       # Now, install the plugin
+    #       sudo apt-get install google-cloud-cli-gke-gcloud-auth-plugin
+
+      - name: GKE Configuration
+        run: |
+          gcloud container clusters get-credentials $GKE_CLUSTER --region $GKE_REGION --project $PROJECT_ID
+
+      
+
+      - name: Deploying to Kubernetes
+        run: |
+          kubectl apply -f kubernetes-deployment.yaml
+          kubectl set image deployment/$DEPLOYMENT_NAME $DEPLOYMENT_NAME=$IMAGE:$GITHUB_SHA

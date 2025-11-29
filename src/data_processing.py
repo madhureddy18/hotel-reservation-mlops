@@ -66,13 +66,14 @@ class DataProcessing:
             feature_importance=model.feature_importances_
 
             feature_importance_df=pd.DataFrame({"feature" : X.columns,"importance": feature_importance})
-
+            
             top_feature_importance_df=feature_importance_df.sort_values(by="importance",ascending=False)
+            print(top_feature_importance_df)
 
             top_10_features=top_feature_importance_df["feature"].head(10).values
 
             top_10_df=df[top_10_features.tolist()+["booking_status"]]
-
+            
             logger.info("Feature slection completed sucesfully")
 
             return top_10_df
