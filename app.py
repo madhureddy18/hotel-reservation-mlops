@@ -31,7 +31,7 @@ def index():
     return render_template('index.html', prediction=prediction)
 
 if __name__=="__main__":
-    app.run(host='0.0.0.0' , port=8080)
+    app.run(host='0.0.0.0' , port=5000)
 
 # ['lead_time' 'avg_price_per_room' 'no_of_special_requests' 'arrival_date'
 #  'arrival_month' 'market_segment_type' 'no_of_week_nights'
